@@ -1,0 +1,191 @@
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+
+namespace sorozatok
+{
+    class adat
+    {
+        public string datum;
+        public string cim;
+        public string evadresz;
+        public int hossz;
+        public bool latta;
+
+        public adat(string d, string c, string e, string h, string l)
+        {
+            datum = d;
+            cim = c;
+            evadresz = e;
+            hossz = int.Parse(h);
+            if (l == "0")
+            {
+                latta = false;
+            }
+            else
+            {
+                latta = true;
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            #region 1. feladat
+            List<adat> sorozatok = new List<adat>();
+            StreamReader sr = new StreamReader("lista.txt");
+            while (!sr.EndOfStream)
+            {
+                sorozatok.Add(new adat(sr.ReadLine(), sr.ReadLine(), sr.ReadLine(), sr.ReadLine(), sr.ReadLine()));
+            }
+            sr.Close();
+            #endregion
+
+            #region 2. feladat
+            Console.WriteLine("2. feladat");
+            int ismert = 0;
+            for (int i = 0; i < sorozatok.Count; i++)
+            {
+                if (sorozatok[i].datum != "NI")
+                {
+                    ismert++;
+                }
+            }
+            Console.WriteLine("A listában {0} db vetítési dátummal rendelkező epizód van.", ismert);
+            #endregion
+
+            #region 3. feladat
+            Console.WriteLine("3. feladat");
+            double latta = 0;
+            for (int i = 0; i < sorozatok.Count; i++)
+            {
+                if (sorozatok[i].latta == true)
+                {
+                    latta++;
+                }
+            }
+            Console.WriteLine("A listában lévő epizódok {0}%-át látta.", Math.Round(latta / sorozatok.Count * 100, 2));
+            #endregion
+
+            #region 4. feladat
+            Console.WriteLine("4. feladat");
+            int nezettperc = 0;
+            for (int i = 0; i < sorozatok.Count; i++)
+            {
+                if (sorozatok[i].latta == true)
+                {
+                    nezettperc += sorozatok[i].hossz;
+                }
+            }
+            Console.WriteLine(percnap(nezettperc));
+            #endregion
+
+            #region 5. feladat
+            Console.WriteLine("5. feladat");
+            Console.Write("Adjon meg egy dátumot! Dátum= ");
+            string bekertdatum = Console.ReadLine();
+            for (int i = 0; i < sorozatok.Count; i++)
+            {
+                if(sorozatok[i].datum!= "NI" && sorozatok[i].latta == false && DateTime.Parse(sorozatok[i].datum)<=DateTime.Parse(bekertdatum))
+                {
+                    /*if (int.Parse(sorozatok[i].datum.Split('.')[0]) < int.Parse(bekertdatum.Split('.')[0]))
+                    {
+                        Console.WriteLine("{0}\t{1}", sorozatok[i].evadresz, sorozatok[i].cim);
+                    }
+                    else if (int.Parse(sorozatok[i].datum.Split('.')[0]) == int.Parse(bekertdatum.Split('.')[0]) && int.Parse(sorozatok[i].datum.Split('.')[1]) < int.Parse(bekertdatum.Split('.')[1]))
+                    {
+                        Console.WriteLine("{0}\t{1}", sorozatok[i].evadresz, sorozatok[i].cim);
+                    }
+                    else if (int.Parse(sorozatok[i].datum.Split('.')[0]) == int.Parse(bekertdatum.Split('.')[0]) && int.Parse(sorozatok[i].datum.Split('.')[1]) == int.Parse(bekertdatum.Split('.')[1]) && int.Parse(sorozatok[i].datum.Split('.')[2]) <= int.Parse(bekertdatum.Split('.')[2]))
+                    {
+                        Console.WriteLine("{0}\t{1}", sorozatok[i].evadresz, sorozatok[i].cim);
+                    }*/
+                    Console.WriteLine("{0}\t{1}", sorozatok[i].evadresz, sorozatok[i].cim);
+                }
+                
+            }
+            #endregion
+
+            #region 7. feladat
+            Console.WriteLine("7. feladat");
+            Console.Write("Adja meg a hét egy napját (például cs)! Nap= ");
+            string adottnap = Console.ReadLine();
+            List<string> adottsorik = new List<string>();
+            for (int i = 0; i < sorozatok.Count; i++)
+            {
+                bool benne = false;
+                if(sorozatok[i].datum!="NI" && hetnapja(int.Parse(sorozatok[i].datum.Split('.')[0]), int.Parse(sorozatok[i].datum.Split('.')[1]), int.Parse(sorozatok[i].datum.Split('.')[2]))==adottnap)
+                {
+                    for (int j = 0; j < adottsorik.Count; j++)
+                    {
+                        if(adottsorik[j]==sorozatok[i].cim)
+                        {
+                            benne = true;
+                        }
+                    }
+                    if(!benne)
+                    {
+                        adottsorik.Add(sorozatok[i].cim);
+                    }
+                }
+            }
+            if(adottsorik.Count==0)
+            {
+                Console.WriteLine("Az adott napon nem kerül adásba sorozat.");
+            }
+            else
+            {
+                for (int i = 0; i < adottsorik.Count; i++)
+                {
+                    Console.WriteLine(adottsorik[i]);
+                }
+            }
+            #endregion
+
+            #region 8. feladat
+            StreamWriter sw = new StreamWriter("summa.txt");
+            int epizodszam = 0;
+            for (int i = 0; i < sorozatok.Count-1; i++)
+            {
+                epizodszam++;
+                if(sorozatok[i].cim!=sorozatok[i+1].cim)
+                {
+                    sw.WriteLine("{0} {1} {2}", sorozatok[i].cim, epizodszam*sorozatok[i].hossz, epizodszam);
+                    epizodszam = 0;
+                }
+            }
+            sw.Close();
+            #endregion
+        }
+        static string percnap(int perc)
+        {
+            int nap;
+            int ora;
+            int percek;
+
+            nap = perc / 60 / 24;
+            ora = (perc - (nap * 24 * 60)) / 60;
+            percek = perc - nap * 24 * 60 - ora * 60;
+
+            return ($"Sorozatnézéssel {nap} napot {ora} órát és {percek} percet töltött.");
+        }
+
+        static string hetnapja(int ev, int ho, int nap)
+        {
+            string[] napok = {"v", "h", "k", "sze", "cs", "p", "szo"};
+            int[] honapok = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
+
+            if(ho<3)
+            {
+                ev = ev - 1;
+            }
+            return napok[(ev + ev / 4 - ev / 100 + ev / 400 + honapok[ho - 1] + nap) % 7];
+        }
+    }
+}
